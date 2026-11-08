@@ -13,6 +13,5 @@ if __name__ == "__main__":
     game.jalankan_game(maze_file="mazes/maze1.json", algoritma_pilihan="astar")
 
 
-    #Ini contoh saja 
+    #Firaz Dan Waiz
 
-    
