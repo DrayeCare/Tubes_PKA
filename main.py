@@ -11,3 +11,8 @@ if __name__ == "__main__":
     # Ubah maze_file menjadi "mazes/maze2.json" atau "mazes/maze3.json" untuk ganti labirin
     # Ubah algoritma_pilihan menjadi "bfs" atau "astar" untuk ganti AI Ghost
     game.jalankan_game(maze_file="mazes/maze1.json", algoritma_pilihan="astar")
+
+
+    #Ini contoh saja 
+
+    
