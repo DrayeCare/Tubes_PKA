@@ -41,3 +41,6 @@ def render_game(screen, grid, pacman_pos, ghost_pos, exit_pos):
     pygame.draw.circle(screen, config.COLOR_PACMAN, (pc_x + config.TILE_SIZE//2, pc_y + config.TILE_SIZE//2), config.TILE_SIZE//2 - 2)
 
     pygame.display.flip()
+
+
+#Perubaan pada git
