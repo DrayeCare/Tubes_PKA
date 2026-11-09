@@ -8,7 +8,7 @@ import json
 import sys
 from core import config
 from core import recorder
-from tampilan import ui
+from tampilan import main_menu
 from algoritma import bfs, astar
 
 def load_maze(filepath):
@@ -17,7 +17,7 @@ def load_maze(filepath):
     return data
 
 def jalankan_game(maze_file="mazes/maze1.json", algoritma_pilihan="astar"):
-    screen = ui.init_pygame()
+    screen = main_menu.init_pygame()
     clock = pygame.time.Clock()
     
     # Load Data Maze
@@ -64,7 +64,7 @@ def jalankan_game(maze_file="mazes/maze1.json", algoritma_pilihan="astar"):
             running = False
 
         # 5. Gambar ke Layar
-        ui.render_game(screen, grid, pacman_pos, ghost_pos, exit_pos)
+        main_menu.render_game(screen, grid, pacman_pos, ghost_pos, exit_pos)
 
     pygame.quit()
     sys.exit()
