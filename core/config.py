@@ -40,6 +40,12 @@ FPS = 10  # Frame per second (kecepatan tick simulasi grid)
 PACMAN_MOVE_EVERY = 1
 GHOST_MOVE_EVERY = 1
 
+# Delay pergerakan karakter dalam satuan detik.
+# Dihitung dari MOVE_EVERY dibagi FPS -> tick 1 pada FPS 10 = 0.1 detik.
+# Konstanta ini dipakai oleh core/game.py untuk mengatur timing gerak.
+PACMAN_MOVE_DELAY = PACMAN_MOVE_EVERY / FPS
+GHOST_MOVE_DELAY = GHOST_MOVE_EVERY / FPS
+
 # ==============================================================================
 # 3. LOGIKA MAZE GRID DAN DIRECTIONS
 # (Sesuai Bab 3.2.2: Pergerakan 4-arah: Atas, Bawah, Kiri, Kanan. Tanpa diagonal)
@@ -118,7 +124,7 @@ ALGO_ASTAR = "A*"
 ALGORITHMS = (ALGO_BFS, ALGO_ASTAR)
 
 # ==============================================================================
-# 8. SKENARIO PENGUJIEN & PARAMETER EVALUASI
+# 8. SKENARIO PENGUJIAN & PARAMETER EVALUASI
 # (Sesuai Bab 3.5 & Bab 3.6: Pengujian target Diam vs Bergerak)
 # ==============================================================================
 SCENARIO_STATIC = "Pac-Man Diam"
