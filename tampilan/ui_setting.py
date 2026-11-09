@@ -225,7 +225,8 @@ class ControlCard:
 
 
 def show_setting(screen=None):
-    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    if screen is None:
+        screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     pygame.display.set_caption("Pac-Man AI: BFS vs A*")
     w, h = screen.get_size()
     clock = pygame.time.Clock()

@@ -1,3 +1,5 @@
+import json
+
 import pygame
 
 from core import config
@@ -26,100 +28,10 @@ C_PACMAN = (255, 220, 0)
 C_GHOST = (255, 0, 0)
 
 
-MAP_OPTIONS = [
-    (1, "Maze Mudah - Banyak Jalur Alternatif"),
-    (2, "Maze Sedang - Loop dan Percabangan"),
-    (3, "Maze Sulit - Loop Bersarang dan Belokan"),
-]
+MAP_OPTIONS = [(mid, config.MAZE_TITLES[mid]) for mid in (1, 2, 3)]
 
 ALGO_OPTIONS = [("bfs", "BFS"), ("astar", "A*")]
 
-MAP_PREVIEWS = {
-    1: {
-        "grid": [
-            "#####################",
-            "#...................#",
-            "#.#####.#####.#.###.#",
-            "#.....#..#....#.....#",
-            "#.###...#####.#.###.#",
-            "#.#...#...........#.#",
-            "#.#.###.##.##.###.#.#",
-            "#...#...............#",
-            "##.##.###.#.###.###.#",
-            "#.......#...#.......#",
-            "#.##.##.#.#.#.##.##.#",
-            "#...................#",
-            "##.##.###.#.###.###.#",
-            "#...............#...#",
-            "#.#.###.##.##.#.#.#.#",
-            "#.#...#.......#...#.#",
-            "#.###.#.#####.#.###.#",
-            "#.............#.....#",
-            "#.#####.#####.#.###.#",
-            "#...................#",
-            "#####################",
-        ],
-        "exit": (1, 4),
-        "ghost": (13, 17),
-        "pacman": (19, 3),
-    },
-    2: {
-        "grid": [
-            "#####################",
-            "#.......#...........#",
-            "#.#####.#.#####.###.#",
-            "#.....#...#.........#",
-            "#.###.##.##.#.####.##",
-            "#...#.......#.......#",
-            "###.#.###.###.#####.#",
-            "#.....#...........#.#",
-            "#.###.#.#######.#.#.#",
-            "#.....#.......#.#...#",
-            "#.###...#####...###.#",
-            "#.....#.......#.#...#",
-            "#.###.#.###.###.#.#.#",
-            "#.....#.#.........#.#",
-            "#####.#.##.##.###.#.#",
-            "#...........#.......#",
-            "#.###.###.#.#.#.###.#",
-            "#.....#...#...#.....#",
-            "#.#####.#.#.###.###.#",
-            "#.......#...........#",
-            "#####################",
-        ],
-        "exit": (1, 11),
-        "ghost": (12, 15),
-        "pacman": (19, 14),
-    },
-    3: {
-        "grid": [
-            "#####################",
-            "#...#...............#",
-            "#.#.#.#####.#.#####.#",
-            "#.#...#.....#.....#.#",
-            "#.#####.#########...#",
-            "#.....#...........#.#",
-            "#####...######.####.#",
-            "#.....#.....#.......#",
-            "#.###.#.###.#.#####.#",
-            "#.....#...#...#.....#",
-            "#.###.######.##.#.###",
-            "#.....#...#...#.....#",
-            "#.###.#.###.#.#.###.#",
-            "#...........#.......#",
-            "#####.#.###.###.###.#",
-            "#.....#.#.........#.#",
-            "#.###.#.#.#######.#.#",
-            "#.#.........#.....#.#",
-            "#.#.#.#####...###.#.#",
-            "#...#.......#.......#",
-            "#####################",
-        ],
-        "exit": (3, 4),
-        "ghost": (9, 17),
-        "pacman": (19, 18),
-    },
-}
 _fonts = {}
 
 
@@ -147,29 +59,35 @@ def _lighten(color, amount=18):
     return tuple(min(255, v + amount) for v in color)
 
 
+_preview_cache = {}
+
+
+def _load_maze_data(maze_id):
+    if maze_id not in _preview_cache:
+        with open(config.MAZE_FILES[maze_id], "r") as f:
+            _preview_cache[maze_id] = json.load(f)
+    return _preview_cache[maze_id]
+
+
 def _build_preview(data, side):
-    """Gambar labirin menjadi Surface (tanpa jalur), maksimal side x side."""
     rows = data["grid"]
     n, m = len(rows), len(rows[0])
     cell = max(side // max(n, m), 2)
     surf = pygame.Surface((cell * m, cell * n))
     surf.fill(C_PATH)
-    for r, line in enumerate(rows):
-        for c, ch in enumerate(line):
-            if ch == "#":
+    for r, row in enumerate(rows):
+        for c, v in enumerate(row):
+            if v == 1:
                 pygame.draw.rect(surf, C_WALL, (c * cell, r * cell, cell, cell))
     pad = max(cell // 5, 1)
     er, ec = data["exit"]
     pygame.draw.rect(
         surf, C_EXIT, (ec * cell + pad, er * cell + pad, cell - 2 * pad, cell - 2 * pad)
     )
-    for key, color in (("pacman", C_PACMAN), ("ghost", C_GHOST)):
+    for key, color in (("pacman_start", C_PACMAN), ("ghost_start", C_GHOST)):
         r, c = data[key]
         pygame.draw.circle(
-            surf,
-            color,
-            (c * cell + cell // 2, r * cell + cell // 2),
-            max(cell // 2 - 1, 2),
+            surf, color, (c * cell + cell // 2, r * cell + cell // 2), max(cell // 2 - 1, 2)
         )
     return surf
 
@@ -243,7 +161,8 @@ class MapCard:
 
 
 def show_mulai(screen=None):
-    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    if screen is None:
+        screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     pygame.display.set_caption("Pac-Man AI: BFS vs A*")
     w, h = screen.get_size()
     clock = pygame.time.Clock()
@@ -274,7 +193,7 @@ def show_mulai(screen=None):
     cards = []
     for i, (maze_id, caption) in enumerate(MAP_OPTIONS):
         rect = (x0 + i * (card_w + gap), card_top, card_w, card_h)
-        preview = _build_preview(MAP_PREVIEWS[maze_id], side)
+        preview = _build_preview(_load_maze_data(maze_id), side)
         cards.append(MapCard(rect, maze_id, caption, preview, caption_size, pad))
 
     algo_w, algo_h, algo_gap = int(220 * s), int(56 * s), int(30 * s)

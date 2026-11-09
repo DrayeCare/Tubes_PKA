@@ -1,269 +1,142 @@
 import json
-import time
-
 import pygame
 
-from algoritma.astar import cari_jalur_astar as astar_search
+from algoritma.astar import cari_jalur_astar
+from algoritma.bfs import cari_jalur_bfs
+from core import config
+from tampilan.ui_setting import get_movement_keys # Ubah jadi ui_setting jika sudah rename
 
-# Import fungsi algoritma dengan NAMA YANG BENAR
-from algoritma.bfs import cari_jalur_bfs as bfs_search
-from core.config import (
-    COLOR_BG,
-    COLOR_EXIT,
-    COLOR_GHOST,
-    COLOR_PACMAN,
-    COLOR_PATH,
-    COLOR_TEXT,
-    COLOR_WALL,
-    FPS,
-    GHOST_MOVE_DELAY,
-    SCREEN_HEIGHT,
-    SCREEN_WIDTH,
-    TILE_SIZE,
-)
-
-
-def _normalize_result(result):
-    """
-    Normalisasi return value algoritma pathfinding -> (path, nodes).
-    Mendukung beberapa format:
-      - None
-      - path saja (list koordinat)
-      - (path, nodes)
-    """
-    if result is None:
-        return [], 0
-    if isinstance(result, tuple):
-        if len(result) == 2:
-            path, nodes = result
-            return (path or []), (nodes or 0)
-        if len(result) == 1:
-            return (result[0] or []), 0
-    return list(result), 0
-
+SEARCH = {"bfs": cari_jalur_bfs, "astar": cari_jalur_astar}
 
 class Game:
-    def __init__(self, maze_path, algorithm="ASTAR"):
-        """
-        maze_path: Path ke file json (misal: 'mazes/maze1.json')
-        algorithm: 'BFS' atau 'ASTAR'
-        """
-        self.algorithm = algorithm.upper()
-        self.load_maze(maze_path)
+    def __init__(self, maze_path, algorithm="astar"):
+        self.algorithm = algorithm.lower()
+        self.search_func = SEARCH.get(self.algorithm, cari_jalur_astar)
+        
+        with open(maze_path, "r") as f:
+            self.maze_data = json.load(f)
 
-        # Grid position setup [row, col]
+        self.grid = self.maze_data["grid"]
         self.pacman_pos = list(self.maze_data["pacman_start"])
         self.ghost_pos = list(self.maze_data["ghost_start"])
         self.exit_pos = list(self.maze_data["exit"])
-        self.grid = self.maze_data["grid"]
 
-        # State permainan
-        self.state = "PLAYING"  # 'PLAYING', 'WIN', 'GAME_OVER'
+        self.state = config.STATE_PLAYING 
         self.ghost_last_move_time = pygame.time.get_ticks()
 
-        # Metrik performa untuk pengujian proposal
-        self.nodes_explored = 0
-        self.last_search_time = 0.0
+        self.total_nodes = 0
+        self.total_time = 0.0
+        self.search_count = 0
+        self.last_path_length = 0
         self.current_path = []
 
-        # Hitung jalur awal untuk hantu
+        # Setup Kontrol (WASD & Panah)
+        self.key_dir = {
+            pygame.K_UP: (-1, 0), pygame.K_DOWN: (1, 0), pygame.K_LEFT: (0, -1), pygame.K_RIGHT: (0, 1),
+            pygame.K_w: (-1, 0), pygame.K_s: (1, 0), pygame.K_a: (0, -1), pygame.K_d: (0, 1)
+        }
+        
+        # Coba ambil dari setting jika fungsinya ada
+        try:
+            keys = get_movement_keys()
+            if isinstance(keys, dict) and "up" in keys:
+                self.key_dir = {}
+                for k in keys["up"]: self.key_dir[k] = (-1, 0)
+                for k in keys["down"]: self.key_dir[k] = (1, 0)
+                for k in keys["left"]: self.key_dir[k] = (0, -1)
+                for k in keys["right"]: self.key_dir[k] = (0, 1)
+        except Exception:
+            pass
+
         self.update_ghost_path()
 
-    def load_maze(self, filepath):
-        with open(filepath, "r") as f:
-            self.maze_data = json.load(f)
-
     def update_ghost_path(self):
-        """Memanggil algoritma pencarian sesuai pilihan (BFS/A*)"""
-        start_time = time.perf_counter()
-
         start = tuple(self.ghost_pos)
         target = tuple(self.pacman_pos)
-
-        if self.algorithm == "BFS":
-            result = bfs_search(self.grid, start, target)
-        else:
-            result = astar_search(self.grid, start, target)
-
-        # Normalisasi supaya aman terhadap berbagai format return
-        path, nodes = _normalize_result(result)
-
-        self.last_search_time = time.perf_counter() - start_time
-        self.nodes_explored = nodes
-
-        # Simpan jalur (abaikan posisi awal hantu)
+        path, nodes, elapsed = self.search_func(self.grid, start, target)
+        
+        self.total_nodes += nodes
+        self.total_time += elapsed
+        self.search_count += 1
+        
+        self.last_path_length = max(len(path) - 1, 0)
         self.current_path = path[1:] if len(path) > 1 else []
 
+    def get_stats(self):
+        n = max(self.search_count, 1)
+        return {
+            "search_time_ms": (self.total_time / n) * 1000,
+            "nodes_explored": int(self.total_nodes / n),
+            "path_length": self.last_path_length
+        }
+
+    @property
+    def winner(self):
+        return "pacman" if self.state == config.STATE_WIN else "ghost"
+
     def handle_input(self, event):
-        """Grid-based movement untuk Pac-Man menggunakan keyboard"""
-        if self.state != "PLAYING":
+        if self.state != config.STATE_PLAYING or event.type != pygame.KEYDOWN:
             return
-
-        if event.type == pygame.KEYDOWN:
-            new_row, new_col = self.pacman_pos[0], self.pacman_pos[1]
-
-            if event.key in (pygame.K_UP, pygame.K_w):
-                new_row -= 1
-            elif event.key in (pygame.K_DOWN, pygame.K_s):
-                new_row += 1
-            elif event.key in (pygame.K_LEFT, pygame.K_a):
-                new_col -= 1
-            elif event.key in (pygame.K_RIGHT, pygame.K_d):
-                new_col += 1
-            else:
-                return
-
-            # Validasi pergerakan: Tidak menabrak dinding (1)
-            if self.is_valid_move(new_row, new_col):
-                self.pacman_pos = [new_row, new_col]
+        if event.key in self.key_dir:
+            dr, dc = self.key_dir[event.key]
+            nr, nc = self.pacman_pos[0] + dr, self.pacman_pos[1] + dc
+            if self.is_valid_move(nr, nc):
+                self.pacman_pos = [nr, nc]
                 self.update_ghost_path()
                 self.check_game_conditions()
 
-    def is_valid_move(self, row, col):
-        rows = len(self.grid)
-        cols = len(self.grid[0])
-        if 0 <= row < rows and 0 <= col < cols:
-            return self.grid[row][col] != 1
-        return False
+    def is_valid_move(self, r, c):
+        return (0 <= r < len(self.grid) and 0 <= c < len(self.grid[0]) and self.grid[r][c] != 1)
 
     def update(self):
-        """Logika pergerakan Ghost berbasis waktu"""
-        if self.state != "PLAYING":
+        if self.state != config.STATE_PLAYING:
             return
-
         now = pygame.time.get_ticks()
-        # GHOST_MOVE_DELAY dalam DETIK -> konversi ke MILIDETIK
-        # karena pygame.time.get_ticks() menghasilkan milidetik.
-        if now - self.ghost_last_move_time >= GHOST_MOVE_DELAY * 1000:
+        if now - self.ghost_last_move_time >= config.GHOST_MOVE_DELAY * 1000:
             self.ghost_last_move_time = now
-
             if self.current_path:
-                next_step = self.current_path.pop(0)
-                self.ghost_pos = list(next_step)
+                self.ghost_pos = list(self.current_path.pop(0))
                 self.check_game_conditions()
 
     def check_game_conditions(self):
-        """Memeriksa Win condition (Exit) & Game Over condition (Ghost)"""
-        # Game Over: Hantu dan Pac-Man di petak yang sama
-        if self.pacman_pos == self.ghost_pos:
-            self.state = "GAME_OVER"
-        # Win: Pac-Man mencapai pintu keluar
-        elif self.pacman_pos == self.exit_pos:
-            self.state = "WIN"
+        if self.pacman_pos == self.exit_pos:
+            self.state = config.STATE_WIN
+        elif self.pacman_pos == self.ghost_pos:
+            self.state = config.STATE_LOSE
 
-    def render(self, surface):
-        """Draw Grid, Exit, Pac-Man, Ghost, dan Overlay Game Over/Win"""
-        surface.fill(COLOR_BG)
-
-        # 1. Render Grid & Exit
+    def render(self, screen):
+        screen.fill(config.COLOR_BG)
         for r in range(len(self.grid)):
             for c in range(len(self.grid[0])):
-                rect = pygame.Rect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+                rect = pygame.Rect(c * config.TILE_SIZE, r * config.TILE_SIZE, config.TILE_SIZE, config.TILE_SIZE)
                 if self.grid[r][c] == 1:
-                    pygame.draw.rect(surface, COLOR_WALL, rect)
+                    pygame.draw.rect(screen, config.COLOR_WALL, rect)
                 else:
-                    pygame.draw.rect(surface, COLOR_PATH, rect, 1)
-
-        # Draw Exit Portal
-        exit_r, exit_c = self.exit_pos
-        exit_rect = pygame.Rect(
-            exit_c * TILE_SIZE + 4, exit_r * TILE_SIZE + 4, TILE_SIZE - 8, TILE_SIZE - 8
-        )
-        pygame.draw.rect(surface, COLOR_EXIT, exit_rect, border_radius=6)
-
-        # 2. Render Pac-Man (Kuning)
-        pac_r, pac_c = self.pacman_pos
-        center_pac = (
-            pac_c * TILE_SIZE + TILE_SIZE // 2,
-            pac_r * TILE_SIZE + TILE_SIZE // 2,
-        )
-        pygame.draw.circle(surface, COLOR_PACMAN, center_pac, TILE_SIZE // 2 - 3)
-
-        # 3. Render Ghost (Merah)
-        ghost_r, ghost_c = self.ghost_pos
-        center_ghost = (
-            ghost_c * TILE_SIZE + TILE_SIZE // 2,
-            ghost_r * TILE_SIZE + TILE_SIZE // 2,
-        )
-        pygame.draw.circle(surface, COLOR_GHOST, center_ghost, TILE_SIZE // 2 - 3)
-
-        # 4. Render State Overlay (Win / Game Over)
-        if self.state in ("WIN", "GAME_OVER"):
-            self.render_end_screen(surface)
-
-    def render_end_screen(self, surface):
-        font = pygame.font.SysFont(None, 48)
-        sub_font = pygame.font.SysFont(None, 24)
-
-        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 190))
-        surface.blit(overlay, (0, 0))
-
-        title_text = "PAC-MAN ESCAPED!" if self.state == "WIN" else "GAME OVER!"
-        title_color = COLOR_EXIT if self.state == "WIN" else COLOR_GHOST
-
-        text_surface = font.render(title_text, True, title_color)
-        rect = text_surface.get_rect(
-            center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 30)
-        )
-        surface.blit(text_surface, rect)
-
-        prompt_surface = sub_font.render(
-            "Tekan [ESC] atau [ENTER] untuk kembali ke Menu Utama", True, COLOR_TEXT
-        )
-        prompt_rect = prompt_surface.get_rect(
-            center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30)
-        )
-        surface.blit(prompt_surface, prompt_rect)
+                    pygame.draw.rect(screen, config.COLOR_PATH, rect, 1)
+                    
+        er, ec = self.exit_pos
+        pygame.draw.rect(screen, config.COLOR_EXIT, (ec*config.TILE_SIZE+4, er*config.TILE_SIZE+4, config.TILE_SIZE-8, config.TILE_SIZE-8), border_radius=6)
+        
+        pr, pc = self.pacman_pos
+        pygame.draw.circle(screen, config.COLOR_PACMAN, (pc*config.TILE_SIZE+config.TILE_SIZE//2, pr*config.TILE_SIZE+config.TILE_SIZE//2), config.TILE_SIZE//2-3)
+        
+        gr, gc = self.ghost_pos
+        pygame.draw.circle(screen, config.COLOR_GHOST, (gc*config.TILE_SIZE+config.TILE_SIZE//2, gr*config.TILE_SIZE+config.TILE_SIZE//2), config.TILE_SIZE//2-3)
 
 
-def run_game(screen, maze_path, algorithm):
-    """Function wrapper untuk dipanggil dari main_menu.py"""
+def run_game(screen, game):
     clock = pygame.time.Clock()
-    game = Game(maze_path, algorithm)
-
-    running = True
-    while running:
-        clock.tick(FPS)
-
+    while game.state == config.STATE_PLAYING:
+        clock.tick(config.FPS)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return "EXIT"
-
-            if game.state == "PLAYING":
-                game.handle_input(event)
-            else:
-                if event.type == pygame.KEYDOWN and event.key in (
-                    pygame.K_ESCAPE,
-                    pygame.K_RETURN,
-                ):
-                    return "MENU"
-
+                return "quit"
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                return "menu"
+            game.handle_input(event)
+            
         game.update()
         game.render(screen)
         pygame.display.flip()
-
-
-def jalankan_game(maze_file="mazes/maze1.json", algoritma_pilihan="astar"):
-    """
-    Entry point yang dipanggil dari main.py.
-    Menangani init pygame, membuat screen, menjalankan game loop,
-    lalu membersihkan pygame setelah selesai.
-    """
-    pygame.init()
-
-    # Kalau main.py sudah membuat screen, pakai yang ada.
-    # Kalau belum, buat baru.
-    screen = pygame.display.get_surface()
-    if screen is None:
-        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Pac-Man: BFS vs A* Search Pathfinding")
-
-    # Normalisasi nama algoritma: 'astar' / 'A*' / 'ASTAR' -> 'ASTAR'
-    algo_str = str(algoritma_pilihan).strip().upper().replace("*", "").replace("_", "")
-    algo = "BFS" if algo_str == "BFS" else "ASTAR"
-
-    hasil = run_game(screen, maze_file, algo)
-
-    pygame.quit()
-    return hasil
+        
+    return "finished"

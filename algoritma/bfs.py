@@ -1,30 +1,38 @@
-"""
-FILE ALGORITMA BFS (BREADTH-FIRST SEARCH)
-Fungsi: Mencari jalan terpendek dari Ghost ke Pac-Man dengan cara "menyebar rata".
-Tugas: Lengkapi logika BFS di dalam fungsi cari_jalur_bfs().
-"""
-
 import time
-
+from collections import deque
 
 def cari_jalur_bfs(grid, start, goal):
-    """
-    Mencari jalur menggunakan BFS.
-    Return: (path_list, nodes_explored, time_taken)
-    """
     start_time = time.perf_counter()
+    if start == goal:
+        return [start], 1, time.perf_counter() - start_time
 
-    # TODO: Tulis algoritma BFS di sini
-    # 1. Gunakan deque untuk antrean (queue)
-    # 2. Simpan parent (jejak sebelumnya) untuk melacak jalur
-    # 3. Cek tetangga (atas, bawah, kiri, kanan) yang bukan tembok (1)
+    baris, kolom = len(grid), len(grid[0])
+    antrean = deque([start])
+    sudah_dikunjungi = {start}
+    induk = {start: None}
+    nodes_explored = 0
 
-    # --- KODE DUMMY (Hapus dan ganti dengan BFS asli) ---
-    path = [start, goal]
-    nodes_explored = 10
-    # ----------------------------------------------------
+    while antrean:
+        sekarang = antrean.popleft()
+        nodes_explored += 1
 
-    end_time = time.perf_counter()
-    time_taken = end_time - start_time
+        if sekarang == goal:
+            jalur = []
+            node = sekarang
+            while node is not None:
+                jalur.append(node)
+                node = induk[node]
+            jalur.reverse()
+            return jalur, nodes_explored, time.perf_counter() - start_time
 
-    return path, nodes_explored, time_taken
+        r, c = sekarang
+        for dr, dc in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < baris and 0 <= nc < kolom and grid[nr][nc] != 1:
+                tetangga = (nr, nc)
+                if tetangga not in sudah_dikunjungi:
+                    sudah_dikunjungi.add(tetangga)
+                    induk[tetangga] = sekarang
+                    antrean.append(tetangga)
+
+    return [], nodes_explored, time.perf_counter() - start_time
