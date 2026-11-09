@@ -1,15 +1,26 @@
-import pygame
 import json
 import time
-from core.config import (
-    TILE_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT, FPS,
-    COLOR_BG, COLOR_WALL, COLOR_PATH, COLOR_PACMAN,
-    COLOR_GHOST, COLOR_EXIT, COLOR_TEXT, GHOST_MOVE_DELAY
-)
+
+import pygame
+
+from algoritma.astar import cari_jalur_astar as astar_search
 
 # Import fungsi algoritma dengan NAMA YANG BENAR
 from algoritma.bfs import cari_jalur_bfs as bfs_search
-from algoritma.astar import cari_jalur_astar as astar_search
+from core.config import (
+    COLOR_BG,
+    COLOR_EXIT,
+    COLOR_GHOST,
+    COLOR_PACMAN,
+    COLOR_PATH,
+    COLOR_TEXT,
+    COLOR_WALL,
+    FPS,
+    GHOST_MOVE_DELAY,
+    SCREEN_HEIGHT,
+    SCREEN_WIDTH,
+    TILE_SIZE,
+)
 
 
 def _normalize_result(result):
@@ -59,7 +70,7 @@ class Game:
         self.update_ghost_path()
 
     def load_maze(self, filepath):
-        with open(filepath, 'r') as f:
+        with open(filepath, "r") as f:
             self.maze_data = json.load(f)
 
     def update_ghost_path(self):
@@ -156,21 +167,24 @@ class Game:
         # Draw Exit Portal
         exit_r, exit_c = self.exit_pos
         exit_rect = pygame.Rect(
-            exit_c * TILE_SIZE + 4, exit_r * TILE_SIZE + 4,
-            TILE_SIZE - 8, TILE_SIZE - 8
+            exit_c * TILE_SIZE + 4, exit_r * TILE_SIZE + 4, TILE_SIZE - 8, TILE_SIZE - 8
         )
         pygame.draw.rect(surface, COLOR_EXIT, exit_rect, border_radius=6)
 
         # 2. Render Pac-Man (Kuning)
         pac_r, pac_c = self.pacman_pos
-        center_pac = (pac_c * TILE_SIZE + TILE_SIZE // 2,
-                      pac_r * TILE_SIZE + TILE_SIZE // 2)
+        center_pac = (
+            pac_c * TILE_SIZE + TILE_SIZE // 2,
+            pac_r * TILE_SIZE + TILE_SIZE // 2,
+        )
         pygame.draw.circle(surface, COLOR_PACMAN, center_pac, TILE_SIZE // 2 - 3)
 
         # 3. Render Ghost (Merah)
         ghost_r, ghost_c = self.ghost_pos
-        center_ghost = (ghost_c * TILE_SIZE + TILE_SIZE // 2,
-                        ghost_r * TILE_SIZE + TILE_SIZE // 2)
+        center_ghost = (
+            ghost_c * TILE_SIZE + TILE_SIZE // 2,
+            ghost_r * TILE_SIZE + TILE_SIZE // 2,
+        )
         pygame.draw.circle(surface, COLOR_GHOST, center_ghost, TILE_SIZE // 2 - 3)
 
         # 4. Render State Overlay (Win / Game Over)
@@ -189,14 +203,17 @@ class Game:
         title_color = COLOR_EXIT if self.state == "WIN" else COLOR_GHOST
 
         text_surface = font.render(title_text, True, title_color)
-        rect = text_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 30))
+        rect = text_surface.get_rect(
+            center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 30)
+        )
         surface.blit(text_surface, rect)
 
         prompt_surface = sub_font.render(
-            "Tekan [ESC] atau [ENTER] untuk kembali ke Menu Utama",
-            True, COLOR_TEXT
+            "Tekan [ESC] atau [ENTER] untuk kembali ke Menu Utama", True, COLOR_TEXT
         )
-        prompt_rect = prompt_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30))
+        prompt_rect = prompt_surface.get_rect(
+            center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30)
+        )
         surface.blit(prompt_surface, prompt_rect)
 
 
@@ -216,12 +233,16 @@ def run_game(screen, maze_path, algorithm):
             if game.state == "PLAYING":
                 game.handle_input(event)
             else:
-                if event.type == pygame.KEYDOWN and event.key in (pygame.K_ESCAPE, pygame.K_RETURN):
+                if event.type == pygame.KEYDOWN and event.key in (
+                    pygame.K_ESCAPE,
+                    pygame.K_RETURN,
+                ):
                     return "MENU"
 
         game.update()
         game.render(screen)
         pygame.display.flip()
+
 
 def jalankan_game(maze_file="mazes/maze1.json", algoritma_pilihan="astar"):
     """

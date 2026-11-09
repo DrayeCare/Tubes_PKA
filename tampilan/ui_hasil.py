@@ -35,6 +35,7 @@ import math
 import sys
 
 import pygame
+
 from core import config
 
 FPS = getattr(config, "FPS", 60)
@@ -110,8 +111,12 @@ def _lighten(color, amount=18):
 
 def _arc(cx, cy, r, start_deg, end_deg, steps=10):
     """Titik-titik busur lingkaran (sumbu y ke bawah)."""
-    return [(cx + r * math.cos(math.radians(a)), cy + r * math.sin(math.radians(a)))
-            for a in [start_deg + (end_deg - start_deg) * i / steps for i in range(steps + 1)]]
+    return [
+        (cx + r * math.cos(math.radians(a)), cy + r * math.sin(math.radians(a)))
+        for a in [
+            start_deg + (end_deg - start_deg) * i / steps for i in range(steps + 1)
+        ]
+    ]
 
 
 def _draw_icon(screen, kind, center, s):
@@ -125,7 +130,9 @@ def _draw_icon(screen, kind, center, s):
 
     if kind == "time":
         pygame.draw.circle(screen, C_VALUE, center, int(9 * k), width)
-        pygame.draw.lines(screen, C_VALUE, False, [p(12, 7), p(12, 12), p(15, 14)], width)
+        pygame.draw.lines(
+            screen, C_VALUE, False, [p(12, 7), p(12, 12), p(15, 14)], width
+        )
     elif kind == "nodes":
         for x, y in ((6, 6), (18, 6), (12, 18)):
             pygame.draw.circle(screen, C_VALUE, p(x, y), int(2.5 * k), width)
@@ -136,9 +143,11 @@ def _draw_icon(screen, kind, center, s):
         pygame.draw.circle(screen, C_VALUE, p(5, 18), int(2.2 * k), width)
         pygame.draw.circle(screen, C_VALUE, p(19, 6), int(2.2 * k), width)
         pts = [p(7.2, 18), p(13, 18)]
-        pts += [p(x, y) for x, y in _arc(13, 15, 3, 90, -90)]   # busur kanan (turun ke naik)
+        pts += [
+            p(x, y) for x, y in _arc(13, 15, 3, 90, -90)
+        ]  # busur kanan (turun ke naik)
         pts += [p(11, 12)]
-        pts += [p(x, y) for x, y in _arc(11, 9, 3, 90, 270)]    # busur kiri
+        pts += [p(x, y) for x, y in _arc(11, 9, 3, 90, 270)]  # busur kiri
         pts += [p(16.8, 6)]
         pygame.draw.lines(screen, C_VALUE, False, pts, width)
 
@@ -159,8 +168,11 @@ class Button:
         _text(screen, self.label, self.font_size, C_TEXT, self.rect.center, bold=True)
 
     def clicked(self, event):
-        return (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1
-                and self.rect.collidepoint(event.pos))
+        return (
+            event.type == pygame.MOUSEBUTTONDOWN
+            and event.button == 1
+            and self.rect.collidepoint(event.pos)
+        )
 
 
 class StatCard:
@@ -182,9 +194,25 @@ class StatCard:
         pygame.draw.circle(screen, C_ICON_BORDER, icon_center, int(32 * s), 2)
         _draw_icon(screen, self.icon, icon_center, s)
 
-        _text(screen, self.label, int(16 * s), C_LABEL, (cx, top + int(110 * s)), bold=True)
-        _text(screen, self.value, int(54 * s), C_VALUE, (cx, top + int(160 * s)), bold=True)
-        _text(screen, self.unit, int(20 * s), C_UNIT, (cx, top + int(210 * s)), bold=True)
+        _text(
+            screen,
+            self.label,
+            int(16 * s),
+            C_LABEL,
+            (cx, top + int(110 * s)),
+            bold=True,
+        )
+        _text(
+            screen,
+            self.value,
+            int(54 * s),
+            C_VALUE,
+            (cx, top + int(160 * s)),
+            bold=True,
+        )
+        _text(
+            screen, self.unit, int(20 * s), C_UNIT, (cx, top + int(210 * s)), bold=True
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -199,11 +227,14 @@ def show_hasil(screen=None, winner="pacman", stats=None, info=None):
     cx = w // 2
 
     stats = stats or {}
-    ghost_win = (winner == "ghost")
+    ghost_win = winner == "ghost"
     title = "TERTANGKAP!" if ghost_win else "BERHASIL KABUR!"
     title_color = C_LOSE if ghost_win else C_WIN
-    reason = ("Ghost berhasil menangkap Pac-Man" if ghost_win
-              else "Pac-Man sampai di Exit, Ghost gagal mengejar")
+    reason = (
+        "Ghost berhasil menangkap Pac-Man"
+        if ghost_win
+        else "Pac-Man sampai di Exit, Ghost gagal mengejar"
+    )
     info_line = _info_line(info)
 
     # --- tiga kartu ---
@@ -213,20 +244,36 @@ def show_hasil(screen=None, winner="pacman", stats=None, info=None):
     card_top = int(228 * s)
     specs = [
         ("time", "WAKTU PENCARIAN", _fmt_time(stats.get("search_time_ms")), "ms"),
-        ("nodes", "JUMLAH SIMPUL YANG DIPERIKSA", _fmt_int(stats.get("nodes_explored")),
-         "simpul"),
+        (
+            "nodes",
+            "JUMLAH SIMPUL YANG DIPERIKSA",
+            _fmt_int(stats.get("nodes_explored")),
+            "simpul",
+        ),
         ("path", "PANJANG JALUR", _fmt_int(stats.get("path_length")), "langkah"),
     ]
-    cards = [StatCard((x0 + i * (card_w + gap), card_top, card_w, card_h), *spec)
-             for i, spec in enumerate(specs)]
+    cards = [
+        StatCard((x0 + i * (card_w + gap), card_top, card_w, card_h), *spec)
+        for i, spec in enumerate(specs)
+    ]
 
     # --- tombol ---
     btn_w, btn_h, btn_gap = int(260 * s), int(60 * s), int(30 * s)
     btn_top = card_top + card_h + int(48 * s)
-    play_btn = Button((cx - btn_gap // 2 - btn_w, btn_top, btn_w, btn_h),
-                      "MAIN LAGI", "replay", int(24 * s), C_BTN_PLAY)
-    menu_btn = Button((cx + btn_gap // 2, btn_top, btn_w, btn_h),
-                      "KE MENU", "menu", int(22 * s), C_BTN_MENU)
+    play_btn = Button(
+        (cx - btn_gap // 2 - btn_w, btn_top, btn_w, btn_h),
+        "MAIN LAGI",
+        "replay",
+        int(24 * s),
+        C_BTN_PLAY,
+    )
+    menu_btn = Button(
+        (cx + btn_gap // 2, btn_top, btn_w, btn_h),
+        "KE MENU",
+        "menu",
+        int(22 * s),
+        C_BTN_MENU,
+    )
 
     while True:
         for event in pygame.event.get():
@@ -255,8 +302,13 @@ def show_hasil(screen=None, winner="pacman", stats=None, info=None):
         play_btn.draw(screen)
         menu_btn.draw(screen)
 
-        _text(screen, "ENTER = main lagi | ESC = ke menu utama", int(14 * s), C_HINT,
-              (cx, h - int(30 * s)))
+        _text(
+            screen,
+            "ENTER = main lagi | ESC = ke menu utama",
+            int(14 * s),
+            C_HINT,
+            (cx, h - int(30 * s)),
+        )
 
         pygame.display.flip()
         clock.tick(FPS)
@@ -267,7 +319,8 @@ if __name__ == "__main__":
     scr = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     pemenang = "ghost" if "ghost" in sys.argv else "pacman"
     aksi = show_hasil(
-        scr, pemenang,
+        scr,
+        pemenang,
         {"search_time_ms": 0.342, "nodes_explored": 87, "path_length": 15},
         {"maze": 2, "algorithm": "astar"},
     )

@@ -1,5 +1,6 @@
-#py -3.13 -m tampilan.main_menu
+# py -3.13 -m tampilan.main_menu
 import pygame
+
 from core import config
 from tampilan.ui_mulai import show_mulai
 from tampilan.ui_Setting import show_setting
@@ -49,13 +50,18 @@ class Button:
 
     def draw(self, screen):
         hover = self.rect.collidepoint(pygame.mouse.get_pos())
-        pygame.draw.rect(screen, C_BTN_HOVER if hover else C_BTN, self.rect, border_radius=10)
+        pygame.draw.rect(
+            screen, C_BTN_HOVER if hover else C_BTN, self.rect, border_radius=10
+        )
         pygame.draw.rect(screen, C_LINE, self.rect, 2, border_radius=10)
         _text(screen, self.label, self.font_size, C_TEXT, self.rect.center, bold=True)
 
     def clicked(self, event):
-        return (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1
-                and self.rect.collidepoint(event.pos))
+        return (
+            event.type == pygame.MOUSEBUTTONDOWN
+            and event.button == 1
+            and self.rect.collidepoint(event.pos)
+        )
 
 
 def show_main_menu(screen=None):
@@ -70,12 +76,20 @@ def show_main_menu(screen=None):
     top = int(h * 0.36)
     top = min(top, h - total_h - int(30 * s))
     buttons = [
-        Button((w // 2 - btn_w // 2, top + i * (btn_h + gap), btn_w, btn_h),
-               label, value, font_size=int(24 * s))
+        Button(
+            (w // 2 - btn_w // 2, top + i * (btn_h + gap), btn_w, btn_h),
+            label,
+            value,
+            font_size=int(24 * s),
+        )
         for i, (value, label) in enumerate(MENU_ITEMS)
     ]
-    keymap = {pygame.K_1: "mulai", pygame.K_2: "setting",
-              pygame.K_3: "info", pygame.K_4: "quit"}
+    keymap = {
+        pygame.K_1: "mulai",
+        pygame.K_2: "setting",
+        pygame.K_3: "info",
+        pygame.K_4: "quit",
+    }
 
     title_size, sub_size = int(64 * s), int(20 * s)
     title_y, sub_y = int(h * 0.14), int(h * 0.14) + int(58 * s)
@@ -94,9 +108,22 @@ def show_main_menu(screen=None):
                     return b.value
 
         screen.fill(C_MENU_BG)
-        _text(screen, "GHOST vs PAC-MAN", title_size, C_TITLE, (w // 2, title_y), bold=True)
-        _text(screen, "BFS  |  A*  -  AI Search Comparison", sub_size, C_SUBTITLE,
-              (w // 2, sub_y), bold=True)
+        _text(
+            screen,
+            "GHOST vs PAC-MAN",
+            title_size,
+            C_TITLE,
+            (w // 2, title_y),
+            bold=True,
+        )
+        _text(
+            screen,
+            "BFS  |  A*  -  AI Search Comparison",
+            sub_size,
+            C_SUBTITLE,
+            (w // 2, sub_y),
+            bold=True,
+        )
         for b in buttons:
             b.draw(screen)
         pygame.display.flip()

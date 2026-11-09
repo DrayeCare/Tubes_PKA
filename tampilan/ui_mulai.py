@@ -1,4 +1,5 @@
 import pygame
+
 from core import config
 
 FPS = getattr(config, "FPS", 60)
@@ -58,7 +59,9 @@ MAP_PREVIEWS = {
             "#...................#",
             "#####################",
         ],
-        "exit": (1, 4), "ghost": (13, 17), "pacman": (19, 3),
+        "exit": (1, 4),
+        "ghost": (13, 17),
+        "pacman": (19, 3),
     },
     2: {
         "grid": [
@@ -84,7 +87,9 @@ MAP_PREVIEWS = {
             "#.......#...........#",
             "#####################",
         ],
-        "exit": (1, 11), "ghost": (12, 15), "pacman": (19, 14),
+        "exit": (1, 11),
+        "ghost": (12, 15),
+        "pacman": (19, 14),
     },
     3: {
         "grid": [
@@ -110,10 +115,13 @@ MAP_PREVIEWS = {
             "#...#.......#.......#",
             "#####################",
         ],
-        "exit": (3, 4), "ghost": (9, 17), "pacman": (19, 18),
+        "exit": (3, 4),
+        "ghost": (9, 17),
+        "pacman": (19, 18),
     },
 }
 _fonts = {}
+
 
 def _font(size, bold=False):
     key = (max(int(size), 8), bold)
@@ -152,12 +160,17 @@ def _build_preview(data, side):
                 pygame.draw.rect(surf, C_WALL, (c * cell, r * cell, cell, cell))
     pad = max(cell // 5, 1)
     er, ec = data["exit"]
-    pygame.draw.rect(surf, C_EXIT,
-                     (ec * cell + pad, er * cell + pad, cell - 2 * pad, cell - 2 * pad))
+    pygame.draw.rect(
+        surf, C_EXIT, (ec * cell + pad, er * cell + pad, cell - 2 * pad, cell - 2 * pad)
+    )
     for key, color in (("pacman", C_PACMAN), ("ghost", C_GHOST)):
         r, c = data[key]
-        pygame.draw.circle(surf, color, (c * cell + cell // 2, r * cell + cell // 2),
-                           max(cell // 2 - 1, 2))
+        pygame.draw.circle(
+            surf,
+            color,
+            (c * cell + cell // 2, r * cell + cell // 2),
+            max(cell // 2 - 1, 2),
+        )
     return surf
 
 
@@ -176,11 +189,16 @@ class Button:
         color = _lighten(fill) if self.hovered() else fill
         pygame.draw.rect(screen, color, self.rect, border_radius=10)
         pygame.draw.rect(screen, border, self.rect, border_w, border_radius=10)
-        _text(screen, self.label, self.font_size, text_color, self.rect.center, self.bold)
+        _text(
+            screen, self.label, self.font_size, text_color, self.rect.center, self.bold
+        )
 
     def clicked(self, event):
-        return (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1
-                and self.rect.collidepoint(event.pos))
+        return (
+            event.type == pygame.MOUSEBUTTONDOWN
+            and event.button == 1
+            and self.rect.collidepoint(event.pos)
+        )
 
 
 class MapCard:
@@ -207,12 +225,22 @@ class MapCard:
 
         pr = self.preview.get_rect(midtop=(self.rect.centerx, self.rect.top + self.pad))
         screen.blit(self.preview, pr)
-        _text(screen, self.caption, self.caption_size, C_TEXT,
-              (self.rect.centerx, (pr.bottom + self.rect.bottom) // 2), bold=True)
+        _text(
+            screen,
+            self.caption,
+            self.caption_size,
+            C_TEXT,
+            (self.rect.centerx, (pr.bottom + self.rect.bottom) // 2),
+            bold=True,
+        )
 
     def clicked(self, event):
-        return (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1
-                and self.rect.collidepoint(event.pos))
+        return (
+            event.type == pygame.MOUSEBUTTONDOWN
+            and event.button == 1
+            and self.rect.collidepoint(event.pos)
+        )
+
 
 def show_mulai(screen=None):
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
@@ -222,8 +250,13 @@ def show_mulai(screen=None):
     s = h / 760
 
     sel = {"maze": 1, "algorithm": "bfs"}
-    back_btn = Button((int(16 * s), int(16 * s), int(120 * s), int(46 * s)),
-                      "BACK", "back", int(20 * s), bold=True)
+    back_btn = Button(
+        (int(16 * s), int(16 * s), int(120 * s), int(46 * s)),
+        "BACK",
+        "back",
+        int(20 * s),
+        bold=True,
+    )
 
     pad = int(12 * s)
     gap = int(24 * s)
@@ -248,13 +281,27 @@ def show_mulai(screen=None):
     algo_total = 2 * algo_w + algo_gap
     algo_top = int(h * 0.72)
     algo_btns = [
-        Button((w // 2 - algo_total // 2 + i * (algo_w + algo_gap), algo_top, algo_w, algo_h),
-               label, value, int(22 * s))
+        Button(
+            (
+                w // 2 - algo_total // 2 + i * (algo_w + algo_gap),
+                algo_top,
+                algo_w,
+                algo_h,
+            ),
+            label,
+            value,
+            int(22 * s),
+        )
         for i, (value, label) in enumerate(ALGO_OPTIONS)
     ]
     start_w, start_h = int(340 * s), int(64 * s)
-    start_btn = Button((w // 2 - start_w // 2, int(h * 0.84), start_w, start_h),
-                       "MULAI GAME", "start", int(26 * s), bold=True)
+    start_btn = Button(
+        (w // 2 - start_w // 2, int(h * 0.84), start_w, start_h),
+        "MULAI GAME",
+        "start",
+        int(26 * s),
+        bold=True,
+    )
 
     def result():
         return {"maze": sel["maze"], "algorithm": sel["algorithm"]}
@@ -285,18 +332,42 @@ def show_mulai(screen=None):
 
         screen.fill(C_BG)
         back_btn.draw(screen, fill=C_BACK_FILL)
-        _text(screen, "PENGATURAN GAME", int(34 * s), C_TITLE, (w // 2, int(h * 0.07)), bold=True)
+        _text(
+            screen,
+            "PENGATURAN GAME",
+            int(34 * s),
+            C_TITLE,
+            (w // 2, int(h * 0.07)),
+            bold=True,
+        )
 
-        _text(screen, "PILIH MAP", int(22 * s), C_LABEL, (w // 2, int(h * 0.145)), bold=True)
+        _text(
+            screen,
+            "PILIH MAP",
+            int(22 * s),
+            C_LABEL,
+            (w // 2, int(h * 0.145)),
+            bold=True,
+        )
         for card in cards:
             card.draw(screen, active=(sel["maze"] == card.maze_id))
 
-        _text(screen, "ALGORITMA MUSUH", int(22 * s), C_ENEMY_LABEL,
-              (w // 2, int(h * 0.685)), bold=True)
+        _text(
+            screen,
+            "ALGORITMA MUSUH",
+            int(22 * s),
+            C_ENEMY_LABEL,
+            (w // 2, int(h * 0.685)),
+            bold=True,
+        )
         for b in algo_btns:
             if sel["algorithm"] == b.value:
-                b.draw(screen, fill=C_ENEMY_ACTIVE_FILL, border=C_ENEMY_ACTIVE_BORDER,
-                       border_w=4)
+                b.draw(
+                    screen,
+                    fill=C_ENEMY_ACTIVE_FILL,
+                    border=C_ENEMY_ACTIVE_BORDER,
+                    border_w=4,
+                )
             else:
                 b.draw(screen)
 

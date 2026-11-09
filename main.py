@@ -1,9 +1,10 @@
 """
 FILE PINTU MASUK (ENTRY POINT)
 Fungsi: Titik awal program dijalankan.
-Tugas: Tekan tombol "Run" (F5) di file ini untuk memulai game. 
+Tugas: Tekan tombol "Run" (F5) di file ini untuk memulai game.
 Kalian bisa ubah nama maze atau algoritma yang mau di-test di sini.
 """
+
 from core import game
 
 if __name__ == "__main__":
@@ -12,5 +13,4 @@ if __name__ == "__main__":
     # Ubah algoritma_pilihan menjadi "bfs" atau "astar" untuk ganti AI Ghost
     game.jalankan_game(maze_file="mazes/maze1.json", algoritma_pilihan="astar")
 
-
-    #Firaz Dan Waiz
+    # Firaz Dan Waiz

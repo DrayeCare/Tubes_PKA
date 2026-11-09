@@ -1,14 +1,15 @@
 """
 FILE PENGATURAN (CONFIG)
-Fungsi : Menyimpan semua konstanta, ukuran visual, warna (RGB/RGBA), path file maze, 
+Fungsi : Menyimpan semua konstanta, ukuran visual, warna (RGB/RGBA), path file maze,
          algoritma AI, skenario pengujian, dan state permainan untuk Pac-Man: BFS vs A*.
 Tugas  : Mengubah ukuran layar, warna, atau parameter simulasi langsung dari file ini.
          Seluruh modul/file lain akan mengimpor nilai-nilai dari file ini.
-         
+
 Cara pakai di file lain:
     from core import config
     pygame.display.set_mode((config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
 """
+
 import os
 
 # ==============================================================================
@@ -17,15 +18,15 @@ import os
 # ==============================================================================
 GRID_ROWS = 21
 GRID_COLS = 21
-TILE_SIZE = 30                          # Ukuran 1 kotak grid dalam piksel
+TILE_SIZE = 30  # Ukuran 1 kotak grid dalam piksel
 
-MAZE_WIDTH = GRID_COLS * TILE_SIZE      # 630 piksel
-MAZE_HEIGHT = GRID_ROWS * TILE_SIZE     # 630 piksel
+MAZE_WIDTH = GRID_COLS * TILE_SIZE  # 630 piksel
+MAZE_HEIGHT = GRID_ROWS * TILE_SIZE  # 630 piksel
 
 # Bar Informasi / Heads-Up Display (HUD) di bagian bawah
 HUD_HEIGHT = 60
-SCREEN_WIDTH = MAZE_WIDTH               # Total lebar: 630 px
-SCREEN_HEIGHT = MAZE_HEIGHT + HUD_HEIGHT # Total tinggi: 690 px (Maze 630 + HUD 60)
+SCREEN_WIDTH = MAZE_WIDTH  # Total lebar: 630 px
+SCREEN_HEIGHT = MAZE_HEIGHT + HUD_HEIGHT  # Total tinggi: 690 px (Maze 630 + HUD 60)
 
 GAME_TITLE = "Pac-Man: BFS vs A* Search Pathfinding"
 
@@ -50,8 +51,8 @@ GHOST_MOVE_DELAY = GHOST_MOVE_EVERY / FPS
 # 3. LOGIKA MAZE GRID DAN DIRECTIONS
 # (Sesuai Bab 3.2.2: Pergerakan 4-arah: Atas, Bawah, Kiri, Kanan. Tanpa diagonal)
 # ==============================================================================
-PATH = 0   # Sel berupa jalan yang dapat dilewati
-WALL = 1   # Sel berupa dinding penghalang
+PATH = 0  # Sel berupa jalan yang dapat dilewati
+WALL = 1  # Sel berupa dinding penghalang
 
 # Arah pergerakan dalam bentuk koordinat (selisih_baris, selisih_kolom)
 UP = (-1, 0)
@@ -66,30 +67,30 @@ DIRECTIONS = (UP, DOWN, LEFT, RIGHT)
 # 4. PALET WARNA (RGB & RGBA)
 # (Sesuai elemen visual Pac-Man, Ghost, Exit, Wall, dan Antarmuka HUD)
 # ==============================================================================
-COLOR_BG = (0, 0, 0)                # Hitam (Latar Maze)
-COLOR_WALL = (33, 33, 222)          # Biru (Dinding Labirin)
-COLOR_PATH = (0, 0, 0)              # Hitam (Jalan)
-COLOR_PACMAN = (255, 255, 0)        # Kuning (Pac-Man)
-COLOR_GHOST = (255, 0, 0)           # Merah (AI Ghost / Hantu)
-COLOR_EXIT = (0, 200, 0)            # Hijau (Pintu Keluar / Exit)
-COLOR_TEXT = (255, 255, 255)        # Putih (Teks Statistik/HUD)
+COLOR_BG = (0, 0, 0)  # Hitam (Latar Maze)
+COLOR_WALL = (33, 33, 222)  # Biru (Dinding Labirin)
+COLOR_PATH = (0, 0, 0)  # Hitam (Jalan)
+COLOR_PACMAN = (255, 255, 0)  # Kuning (Pac-Man)
+COLOR_GHOST = (255, 0, 0)  # Merah (AI Ghost / Hantu)
+COLOR_EXIT = (0, 200, 0)  # Hijau (Pintu Keluar / Exit)
+COLOR_TEXT = (255, 255, 255)  # Putih (Teks Statistik/HUD)
 
 # Warna UI & Menu
-COLOR_HUD_BG = (20, 20, 20)         # Latar belakang HUD bawah
-COLOR_WIN = (0, 220, 0)             # Teks/Status Menang
-COLOR_LOSE = (230, 30, 30)          # Teks/Status Kalah
-COLOR_BUTTON = (50, 50, 160)        # Tombol Menu
+COLOR_HUD_BG = (20, 20, 20)  # Latar belakang HUD bawah
+COLOR_WIN = (0, 220, 0)  # Teks/Status Menang
+COLOR_LOSE = (230, 30, 30)  # Teks/Status Kalah
+COLOR_BUTTON = (50, 50, 160)  # Tombol Menu
 COLOR_BUTTON_HOVER = (90, 90, 220)  # Hover Tombol Menu
-COLOR_OVERLAY = (0, 0, 0, 180)      # Transparansi Lapisan (RGBA)
+COLOR_OVERLAY = (0, 0, 0, 180)  # Transparansi Lapisan (RGBA)
 
 # Radius visual lingkaran Pac-Man dan Ghost
 CHARACTER_RADIUS = TILE_SIZE // 2 - 3
-EXIT_MARGIN = 4                     # Margin batas kotak hijau Exit
+EXIT_MARGIN = 4  # Margin batas kotak hijau Exit
 
 # ==============================================================================
 # 5. FONT DAN UKURAN TEKS
 # ==============================================================================
-FONT_NAME = None                    # None = Default Font Pygame
+FONT_NAME = None  # None = Default Font Pygame
 FONT_SIZE_TITLE = 48
 FONT_SIZE_MENU = 28
 FONT_SIZE_HUD = 20

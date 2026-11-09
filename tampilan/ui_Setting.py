@@ -2,6 +2,7 @@ import json
 import os
 
 import pygame
+
 from core import config
 
 FPS = getattr(config, "FPS", 60)
@@ -40,10 +41,19 @@ def save_controls(value):
 def get_movement_keys(controls=None):
     controls = controls or load_controls()
     if controls == "arrow":
-        return {"up": [pygame.K_UP], "down": [pygame.K_DOWN],
-                "left": [pygame.K_LEFT], "right": [pygame.K_RIGHT]}
-    return {"up": [pygame.K_w], "down": [pygame.K_s],
-            "left": [pygame.K_a], "right": [pygame.K_d]}
+        return {
+            "up": [pygame.K_UP],
+            "down": [pygame.K_DOWN],
+            "left": [pygame.K_LEFT],
+            "right": [pygame.K_RIGHT],
+        }
+    return {
+        "up": [pygame.K_w],
+        "down": [pygame.K_s],
+        "left": [pygame.K_a],
+        "right": [pygame.K_d],
+    }
+
 
 C_BG = (8, 8, 20)
 C_TITLE = (110, 220, 255)
@@ -67,6 +77,8 @@ C_ERR = (255, 100, 100)
 C_CHECK_DARK = (26, 16, 48)
 
 _fonts = {}
+
+
 def _font(size, bold=False):
     key = (max(int(size), 8), bold)
     if key not in _fonts:
@@ -113,8 +125,13 @@ def _draw_keycap(screen, rect, s, label=None, arrow=None):
 def _draw_check(screen, center, s):
     cx, cy = center
     pygame.draw.circle(screen, C_CARD_ACTIVE_BORDER, center, int(16 * s))
-    pts = [(cx - 7 * s, cy + 0.5 * s), (cx - 2 * s, cy + 5 * s), (cx + 7 * s, cy - 5 * s)]
+    pts = [
+        (cx - 7 * s, cy + 0.5 * s),
+        (cx - 2 * s, cy + 5 * s),
+        (cx + 7 * s, cy - 5 * s),
+    ]
     pygame.draw.lines(screen, C_CHECK_DARK, False, pts, max(int(3 * s), 2))
+
 
 class Button:
     def __init__(self, rect, label, value, font_size, fill, bold=True):
@@ -133,8 +150,11 @@ class Button:
         _text(screen, self.label, self.font_size, C_TEXT, self.rect.center, self.bold)
 
     def clicked(self, event):
-        return (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1
-                and self.rect.collidepoint(event.pos))
+        return (
+            event.type == pygame.MOUSEBUTTONDOWN
+            and event.button == 1
+            and self.rect.collidepoint(event.pos)
+        )
 
 
 class ControlCard:
@@ -147,8 +167,11 @@ class ControlCard:
         self.subtitle = subtitle
 
     def clicked(self, event):
-        return (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1
-                and self.rect.collidepoint(event.pos))
+        return (
+            event.type == pygame.MOUSEBUTTONDOWN
+            and event.button == 1
+            and self.rect.collidepoint(event.pos)
+        )
 
     def draw(self, screen, active, s):
         if active:
@@ -179,13 +202,27 @@ class ControlCard:
             _draw_keycap(screen, cell(1, 1), s, arrow=(0, 1))
             _draw_keycap(screen, cell(2, 1), s, arrow=(1, 0))
 
-        _text(screen, self.title, int(30 * s), C_TEXT,
-              (self.rect.centerx, self.rect.top + int(192 * s)), bold=True)
-        _text(screen, self.subtitle, int(15 * s), C_SUBTEXT,
-              (self.rect.centerx, self.rect.top + int(234 * s)))
+        _text(
+            screen,
+            self.title,
+            int(30 * s),
+            C_TEXT,
+            (self.rect.centerx, self.rect.top + int(192 * s)),
+            bold=True,
+        )
+        _text(
+            screen,
+            self.subtitle,
+            int(15 * s),
+            C_SUBTEXT,
+            (self.rect.centerx, self.rect.top + int(234 * s)),
+        )
 
         if active:
-            _draw_check(screen, (self.rect.right - int(30 * s), self.rect.top + int(30 * s)), s)
+            _draw_check(
+                screen, (self.rect.right - int(30 * s), self.rect.top + int(30 * s)), s
+            )
+
 
 def show_setting(screen=None):
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
@@ -204,18 +241,36 @@ def show_setting(screen=None):
     card_w, card_h, card_gap = int(380 * s), int(280 * s), int(40 * s)
     card_top = int(214 * s)
     cards = [
-        ControlCard((cx - card_gap // 2 - card_w, card_top, card_w, card_h),
-                    "wasd", "WASD", "W atas | A kiri | S bawah | D kanan"),
-        ControlCard((cx + card_gap // 2, card_top, card_w, card_h),
-                    "arrow", "PANAH", "Panah atas | kiri | bawah | kanan"),
+        ControlCard(
+            (cx - card_gap // 2 - card_w, card_top, card_w, card_h),
+            "wasd",
+            "WASD",
+            "W atas | A kiri | S bawah | D kanan",
+        ),
+        ControlCard(
+            (cx + card_gap // 2, card_top, card_w, card_h),
+            "arrow",
+            "PANAH",
+            "Panah atas | kiri | bawah | kanan",
+        ),
     ]
 
     btn_w, btn_h, btn_gap = int(260 * s), int(60 * s), int(30 * s)
     btn_top = int(530 * s)
-    save_btn = Button((cx - btn_gap // 2 - btn_w, btn_top, btn_w, btn_h),
-                      "SIMPAN", "save", int(24 * s), C_SAVE)
-    menu_btn = Button((cx + btn_gap // 2, btn_top, btn_w, btn_h),
-                      "KE MENU", "menu", int(22 * s), C_MENU)
+    save_btn = Button(
+        (cx - btn_gap // 2 - btn_w, btn_top, btn_w, btn_h),
+        "SIMPAN",
+        "save",
+        int(24 * s),
+        C_SAVE,
+    )
+    menu_btn = Button(
+        (cx + btn_gap // 2, btn_top, btn_w, btn_h),
+        "KE MENU",
+        "menu",
+        int(22 * s),
+        C_MENU,
+    )
 
     def do_save():
         nonlocal saved_choice, save_failed
@@ -248,15 +303,29 @@ def show_setting(screen=None):
         screen.fill(C_BG)
 
         hover = back_rect.collidepoint(pygame.mouse.get_pos())
-        pygame.draw.rect(screen, _lighten(C_BACK) if hover else C_BACK, back_rect,
-                         border_radius=10)
+        pygame.draw.rect(
+            screen, _lighten(C_BACK) if hover else C_BACK, back_rect, border_radius=10
+        )
         pygame.draw.rect(screen, C_BORDER, back_rect, 2, border_radius=10)
         _draw_arrow(screen, back_rect, (-1, 0), (255, 255, 255), s * 1.1)
 
         _text(screen, "SETTING", int(48 * s), C_TITLE, (cx, int(72 * s)), bold=True)
-        _text(screen, "GHOST vs PAC-MAN", int(18 * s), C_SUBTITLE, (cx, int(116 * s)),
-              bold=True)
-        _text(screen, "KONTROL PAC-MAN", int(22 * s), C_LABEL, (cx, int(181 * s)), bold=True)
+        _text(
+            screen,
+            "GHOST vs PAC-MAN",
+            int(18 * s),
+            C_SUBTITLE,
+            (cx, int(116 * s)),
+            bold=True,
+        )
+        _text(
+            screen,
+            "KONTROL PAC-MAN",
+            int(22 * s),
+            C_LABEL,
+            (cx, int(181 * s)),
+            bold=True,
+        )
 
         for card in cards:
             card.draw(screen, active=(selected == card.value), s=s)
@@ -265,21 +334,45 @@ def show_setting(screen=None):
         menu_btn.draw(screen)
 
         if save_failed:
-            _text(screen, "Gagal menyimpan pengaturan", int(17 * s), C_ERR,
-                  (cx, int(620 * s)), bold=True)
+            _text(
+                screen,
+                "Gagal menyimpan pengaturan",
+                int(17 * s),
+                C_ERR,
+                (cx, int(620 * s)),
+                bold=True,
+            )
         elif saved_choice == selected:
-            _text(screen, "Pengaturan tersimpan", int(17 * s), C_OK,
-                  (cx, int(620 * s)), bold=True)
+            _text(
+                screen,
+                "Pengaturan tersimpan",
+                int(17 * s),
+                C_OK,
+                (cx, int(620 * s)),
+                bold=True,
+            )
         else:
-            _text(screen, "Belum disimpan", int(17 * s), C_MUTED,
-                  (cx, int(620 * s)), bold=True)
+            _text(
+                screen,
+                "Belum disimpan",
+                int(17 * s),
+                C_MUTED,
+                (cx, int(620 * s)),
+                bold=True,
+            )
 
-        _text(screen, "Klik kartu untuk memilih | ENTER = simpan | "
-                      "ESC atau panah kiri atas = kembali ke menu utama",
-              int(14 * s), C_MUTED, (cx, int(692 * s)))
+        _text(
+            screen,
+            "Klik kartu untuk memilih | ENTER = simpan | "
+            "ESC atau panah kiri atas = kembali ke menu utama",
+            int(14 * s),
+            C_MUTED,
+            (cx, int(692 * s)),
+        )
 
         pygame.display.flip()
         clock.tick(FPS)
+
 
 if __name__ == "__main__":
     pygame.init()
