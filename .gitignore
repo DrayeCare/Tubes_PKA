@@ -1,15 +1,25 @@
+﻿# Python Cache & Virtual Environment
 __pycache__/
 *.py[cod]
+*.pyc
 *.egg-info/
 .pytest_cache/
 .venv/
 venv/
 env/
-results.csv
-settings.json
-.DS_Store
-Thumbs.db
+
+# IDE Settings
 .vscode/
 .idea/
+
+# Output eksperimen & config lokal
+results.csv
+settings.json
+
+# OS
+.DS_Store
+Thumbs.db
+
 # file dump lokal
 all-code.txt
+env/
