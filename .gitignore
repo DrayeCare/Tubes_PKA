@@ -1,25 +1,12 @@
-﻿# Python
-__pycache__/
+﻿__pycache__/
 *.py[cod]
-*$py.class
-*.so
-
-# Virtual env
+*.log
+*.bak
+*.tmp
+*.orig
 .venv/
 venv/
-env/
-ENV/
-
-# IDE
-.vscode/
-.idea/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Cache & log
-*.log
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
+.env
+results.csv
+audit.txt
+diff.txt
