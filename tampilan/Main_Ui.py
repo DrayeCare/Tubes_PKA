@@ -1,20 +1,10 @@
-"""
-tampilan/main_menu.py
-Main Menu (PLACEHOLDER, FULLSCREEN): hanya tampilan, belum terhubung ke layar lain.
-File ini berdiri sendiri (tidak mengimpor ui.py) supaya tidak ada import melingkar.
-
-Tombol: 1. Mulai   2. Setting   3. Info   4. Quit
-Keluar: tombol Quit, angka 4, atau ESC.
-
-show_main_menu(screen) -> "mulai" | "setting" | "info" | "quit"
-
-Tes mandiri: py -3.13 -m tampilan.main_menu
-"""
-
+#py -3.13 -m tampilan.main_menu
 import pygame
 from core import config
+from tampilan.Ui_mulai import show_mulai
+from tampilan.Ui_Setting import show_setting
 
-MENU_SIZE = (680, 560)  # ukuran acuan desain; layout diskalakan ke layar penuh
+MENU_SIZE = (680, 560)
 FPS = getattr(config, "FPS", 60)
 
 COLOR_BG = getattr(config, "COLOR_BG", (0, 0, 0))
@@ -29,19 +19,19 @@ C_BTN = (40, 40, 70)
 C_BTN_HOVER = (62, 62, 110)
 
 MENU_ITEMS = [
-    ("mulai", "1. Mulai"),
-    ("setting", "2. Setting"),
-    ("info", "3. Info"),
-    ("quit", "4. Quit"),
+    ("mulai", "Mulai"),
+    ("setting", "Setting"),
+    ("info", "Info"),
+    ("quit", "Quit"),
 ]
 
 _fonts = {}
 
 
 def _font(size, bold=False):
-    key = (size, bold)
+    key = (max(int(size), 8), bold)
     if key not in _fonts:
-        _fonts[key] = pygame.font.SysFont("consolas", size, bold=bold)
+        _fonts[key] = pygame.font.SysFont("consolas", key[0], bold=bold)
     return _fonts[key]
 
 
@@ -61,7 +51,7 @@ class Button:
         hover = self.rect.collidepoint(pygame.mouse.get_pos())
         pygame.draw.rect(screen, C_BTN_HOVER if hover else C_BTN, self.rect, border_radius=10)
         pygame.draw.rect(screen, C_LINE, self.rect, 2, border_radius=10)
-        _text(screen, self.label, self.font_size, C_TEXT, self.rect.center)
+        _text(screen, self.label, self.font_size, C_TEXT, self.rect.center, bold=True)
 
     def clicked(self, event):
         return (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1
@@ -69,18 +59,16 @@ class Button:
 
 
 def show_main_menu(screen=None):
-    # Layar penuh sesuai resolusi monitor
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     pygame.display.set_caption("Pac-Man AI: BFS vs A*")
     w, h = screen.get_size()
     clock = pygame.time.Clock()
 
-    # Skala layout terhadap tinggi layar (acuan 560 px)
     s = h / MENU_SIZE[1]
     btn_w, btn_h, gap = int(320 * s), int(60 * s), int(20 * s)
     total_h = 4 * btn_h + 3 * gap
     top = int(h * 0.36)
-    top = min(top, h - total_h - int(30 * s))  # jaga agar tombol tidak keluar layar
+    top = min(top, h - total_h - int(30 * s))
     buttons = [
         Button((w // 2 - btn_w // 2, top + i * (btn_h + gap), btn_w, btn_h),
                label, value, font_size=int(24 * s))
@@ -115,9 +103,33 @@ def show_main_menu(screen=None):
         clock.tick(FPS)
 
 
-if __name__ == "__main__":
+def run():
     pygame.init()
-    scr = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-    # Placeholder: hanya cetak pilihan, belum membuka layar apa pun.
-    print("Pilihan:", show_main_menu(scr))
+    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+
+    while True:
+        pilihan = show_main_menu(screen)
+
+        if pilihan == "quit":
+            break
+
+        if pilihan == "mulai":
+            hasil = show_mulai(screen)
+            if hasil == "quit":
+                break
+            if hasil == "back":
+                continue
+            print("Pengaturan game:", hasil)
+            continue
+
+        if pilihan == "setting":
+            hasil = show_setting(screen)
+            if hasil == "quit":
+                break
+            continue
+
     pygame.quit()
+
+
+if __name__ == "__main__":
+    run()
